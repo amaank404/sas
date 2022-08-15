@@ -1,0 +1,17 @@
+import regex
+
+let comment* = re"\#.*"
+let directive* = re"\.(?P<name>\S+)(\s+(?P<args>.*)|\s*)"
+let stringliteral* = re""""(?P<data>(\\.|[^"\\])*)(?<!\\)""""
+let hexliteral* = re"(?P<sign>[\-\+])?0[xX](?P<hex>[a-fA-F0-9]+)"
+let octalliteral* = re"(?P<sign>[\-\+])?0[oO](?P<oct>[0-7]+)"
+let binaryliteral* = re"(?P<sign>[\-\+])?0[bB](?P<bin>[10]+)"
+let charliteral* = re"'(?P<data>\\.|[^'\\])((?<!\\)|(?<=\\\\))'"
+let numliteral* = re"(?P<sign>[\-\+])?(?P<int>\d+)"
+let constliteral* = re"(word|half|byte|true|false)"
+let label* = re"%[^\d].*"
+let locallabel* = re"%\d+(f|b)"
+let labelident* = re"(?P<name>[^\:]+)\:"
+let instruction* = re"(?P<name>\S+)\s+(?P<args>.*)"
+let bareinstruction* = re"(?P<name>\S+)"
+let space* = re"\s+"
