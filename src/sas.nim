@@ -31,6 +31,7 @@ when isMainModule:
   let srccode = readFile("test.s")
   let asmparsed = parseAsm(srccode)
   let includeresolved = resolveIncludeDirectives(asmparsed, @["lib", "."])
-  let compiled = compile(includeresolved)
+  let compiled = compile(includeresolved, true)
   #echo compiled
-  writeFile("out.bin", compiled)
+  writeFile("out.bin", compiled.code)
+  writeFile("out.dbg", compiled.debuginfo.toTextDebugInfo)

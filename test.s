@@ -1,11 +1,21 @@
-.start _main
+LABLEDDATA:
+    .dump "HelloWorld"
 
-_main:
-  set g0 1000
+strlen:
+    mov t1 a0
 1:
-  sub g0 1
-  eq t0 g0 zero
-  jif t0 %2f
-  jmp %1b
+    ldb t0 a0
+    eq t0 zero
+    jmp %3f
+MYDATA:
+    .dump "Hella World in Data"
+3:
+    jif t0 %2f
+    add t1 1
+    jmp %1b
+    .dump "Unreacheable unlabeld data"
 2:
-  jmp %2b
+    sub a0 t1
+    ret
+
+# Saved in 64 bytes of ram.

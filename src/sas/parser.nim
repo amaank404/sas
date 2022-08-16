@@ -210,7 +210,7 @@ proc resolveIncludeDirectives*(code: seq[Node], libpaths: seq[string] = @[]): se
     else:
       result.add v
 
-proc compile*(code: sink seq[Node]): seq[uint8] =
+proc compile*(code: sink seq[Node], incdebug: bool): tuple[code: seq[uint8], debuginfo: Table[string, seq[int]]] =
   code.add Node(kind: nkLabel, labelIdent: "MEMORY_START")
   var labellocations: Table[string, seq[int]]
   var labelsetlocations: Table[string, int]
@@ -342,6 +342,8 @@ proc compile*(code: sink seq[Node]): seq[uint8] =
           raise ParseError.newException("Unrecognised Label Type for label $1 at index $2" % [v, $index])
     case x.kind
     of nkRawData:
+      if incdebug:
+        result.debuginfo['!' & $ci] = @[x.rawVal.data.len]
       ci += x.rawVal.data.len
     of nkRawInstruction, nkInstruction:
       ci += 8
@@ -353,7 +355,7 @@ proc compile*(code: sink seq[Node]): seq[uint8] =
   # All the variables have now been resolved. Now we can convert all nodes
   # to there Binary Representation. Here we make an educated guess about
   # the size of output.
-  result = newSeqOfCap[uint8](ci)
+  var codefinal = newSeqOfCap[uint8](ci)
 
   for x in temp2:
     case x.kind
@@ -365,7 +367,7 @@ proc compile*(code: sink seq[Node]): seq[uint8] =
       final[2] = r.rs1
       final[3] = r.rs2
       final[4..7] = r.imm.toBytesBE
-      result.add final
+      codefinal.add final
     of nkInstruction:
       let r = x.insVal
       var final: array[8, uint8]
@@ -374,13 +376,24 @@ proc compile*(code: sink seq[Node]): seq[uint8] =
       final[2] = r.rs1
       final[3] = r.rs2
       final[4..7] = r.imm.toBytesBE
-      result.add final
+      codefinal.add final
     of nkRawData:
-      result.add x.rawVal.data
+      codefinal.add x.rawVal.data
     of nkLabel:
-      discard
+      if incdebug:
+        result.debuginfo['@' & x.labelIdent] = labellocations[x.labelIdent].deepCopy
     else:
       raise ParseError.newException("No directives should be found at this stage of compilation. This is a compiler bug and cannot be fixed by user.")
 
+    result.code = codefinal
+
+proc toTextDebugInfo*(debuginfo: Table[string, seq[int]]): string =
+  for lbl, locs in debuginfo.pairs():
+    result.add "$1:$2\n" % [lbl, locs.join(",")]
+  result.setLen(result.len-1)
+
 proc compile*(code: string): seq[uint8] =
-  compile(parseAsm(code))
+  compile(parseAsm(code), false).code
+
+proc compile*(code: sink seq[Node]): seq[uint8] =
+  compile(code, false).code
