@@ -147,15 +147,19 @@ let realins* = {
   "ior r r i": 0x19
 }.toTable
 
+var realinsOpposite*: Table[int, string]
+for k, v in realins.pairs:
+  realinsOpposite[v] = k
+
 let schemes* = {
   "divr": "rr i",
   "modr": "rr i",
   "ldb": "rr i",
   "ldh": "rr i",
   "ldw": "rr i",
-  "stb": "st*",
-  "sth": "st*",
-  "stw": "st*",
+  "stb": " rri",
+  "sth": " rri",
+  "stw": " rri",
   "jif": " rri",
   "iow": " rri",
   "ior": "rr i",

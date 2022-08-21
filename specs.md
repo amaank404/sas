@@ -112,13 +112,13 @@ to be called "compilant with sas specs".
 | pseudo | jmp | - | rs1 | - | imm | ip = rs1 + imm | jmp source literal |
 | pseudo | jmp | - | rs1 | - | - | ip = rs1 | jmp source |
 | pseudo | jmp | - | - | - | imm | ip = imm | jmp literal |
-| 0x0b | stb | - | rs1 | rs2 | imm | mem\[rs1+imm\](1byte) = rs2 | stb dest literal source |
+| 0x0b | stb | - | rs1 | rs2 | imm | mem\[rs1+imm\](1byte) = rs2 | stb dest source literal_offset |
 | pseudo | stb | - | rs1 | rs2 | - | mem\[rs1\](1byte) = rs2 | stb dest source |
 | pseudo | stb | - | - | rs2 | imm | mem\[imm\](1byte) = rs2 | stb literal source |
-| 0x0c | sth | - | rs1 | rs2 | imm | mem\[rs1+imm\](2byte) = rs2 | sth dest literal source |
+| 0x0c | sth | - | rs1 | rs2 | imm | mem\[rs1+imm\](2byte) = rs2 | sth dest source literal_offset |
 | pseudo | sth | - | rs1 | rs2 | - | mem\[rs1\](2byte) = rs2 | sth dest source |
 | pseudo | sth | - | - | rs2 | imm | mem\[imm\](2byte) = rs2 | sth literal source |
-| 0x0d | stw | - | rs1 | rs2 | imm | mem\[rs1+imm\](4byte) = rs2 | stw dest literal source |
+| 0x0d | stw | - | rs1 | rs2 | imm | mem\[rs1+imm\](4byte) = rs2 | stw dest source literal_offset |
 | pseudo | stw | - | rs1 | rs2 | - | mem\[rs1\](4byte) = rs2 | stw dest source |
 | pseudo | stw | - | - | rs2 | imm | mem\[imm\](4byte) = rs2 | stw literal source |
 | pseudo | push | - | rs1 | - | - | sub sp 4 <br/> stw sp {rs1} | push source |

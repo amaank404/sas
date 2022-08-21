@@ -10,8 +10,13 @@ import instructions
 import regex
 import tokens
 import registerconsts
+import decompiler
 import os
+import debuginfo
 import std/tables
+
+export debuginfo
+export decompiler
 
 ## There are many stages to a compiler. One of the first stage
 ## is parser that converts the hand written human code into
@@ -82,10 +87,6 @@ proc toInstruction*(r: RawInstruction): Instruction =
       result.rs1 = args[0].uint8
       result.rs2 = args[1].uint8
       result.imm = args[2]
-    of "st*":
-      result.rs1 = args[0].uint8
-      result.imm = args[1]
-      result.rs2 = args[2].uint8
     of "rrr":
       result.rd1 = args[0].uint8
       result.rs1 = args[1].uint8
@@ -244,7 +245,7 @@ proc compile*(code: sink seq[Node], incdebug: bool): tuple[code: seq[uint8], deb
         let literal = intLiteral(splitted[1].strip)
         let location = mem
         mem += literal
-        when defined(showWarnings):
+        when not defined(hideWarnings):
           if labelname in labelsetlocations:
             echo "Warning: Duplicate Label " & labelname
         labelsetlocations[labelname] = location
@@ -254,7 +255,7 @@ proc compile*(code: sink seq[Node], incdebug: bool): tuple[code: seq[uint8], deb
           raise ParseError.newException("Expected exactly 2 arguments for memory directive, received: " & $splitted)
         let labelname = splitted[0]
         let literal = intLiteral(splitted[1].strip)
-        when defined(showWarnings):
+        when not defined(hideWarnings):
           if labelname in labelsetlocations:
             echo "Warning: Duplicate Label " & labelname
         labelsetlocations[labelname] = literal
@@ -273,7 +274,8 @@ proc compile*(code: sink seq[Node], incdebug: bool): tuple[code: seq[uint8], deb
           done += 1
         
         var rawstring = cast[seq[uint8]](stringdata)  # FIXME: Unsafe cast here
-        rawstring.add 0'u8  # Null termination of string
+        if v.dirVal.name == "string":
+          rawstring.add 0'u8  # Null termination of string
         temp.add Node(kind: nkRawData, rawVal: RawData(data: rawstring))
       of "start":
         temp.add Node(kind: nkRawInstruction, rinsVal: newRawInstruction("jmp %" & v.dirVal.args.strip))
@@ -300,7 +302,7 @@ proc compile*(code: sink seq[Node], incdebug: bool): tuple[code: seq[uint8], deb
   for x in temp2:
     case x.kind
     of nkLabel:
-      when defined(showWarnings):
+      when not defined(hideWarnings):
         if labellocations.hasKey(x.labelident) and not x.labelident.isNumeric:
           echo "Warning: Label " & x.labelident & " has been repeated"
       if not labellocations.hasKey(x.labelIdent):
@@ -386,11 +388,6 @@ proc compile*(code: sink seq[Node], incdebug: bool): tuple[code: seq[uint8], deb
       raise ParseError.newException("No directives should be found at this stage of compilation. This is a compiler bug and cannot be fixed by user.")
 
     result.code = codefinal
-
-proc toTextDebugInfo*(debuginfo: Table[string, seq[int]]): string =
-  for lbl, locs in debuginfo.pairs():
-    result.add "$1:$2\n" % [lbl, locs.join(",")]
-  result.setLen(result.len-1)
 
 proc compile*(code: string): seq[uint8] =
   compile(parseAsm(code), false).code
