@@ -66,12 +66,15 @@ var pseudoins*: Table[string, string] = static:
     jmp i         = add ip zero zero $0
   
   # Stb Pseudo Instructions
+    stb r i r     = stb $0 $2 $1
     stb r r       = stb $0 $1 0
     stb i r       = stb zero $1 $0
   # Sth Pseudo Instructions
+    sth r i r     = sth $0 $2 $1
     sth r r       = sth $0 $1 0
     sth i r       = sth zero $1 $0
   # Stw Pseudo Instructions
+    stw r i r     = stw $0 $2 $1
     stw r r       = stw $0 $1 0
     stw i r       = stw zero $1 $0
 
@@ -114,7 +117,12 @@ var pseudoins*: Table[string, string] = static:
     shr r r       = shr $0 $0 $1 0
     shr r i       = shr $0 $0 zero $1
   
+  # IoBus
+    iow r i r     = iow $0 $2 $1
+
   # Custom Undocumented Instructions
+    inc r         = add $0 $0 zero 1
+    dec r         = sub $0 $0 zero 1
   """
   t
 
@@ -152,6 +160,8 @@ for k, v in realins.pairs:
   realinsOpposite[v] = k
 
 let schemes* = {
+  "err": "",
+  "nop": "",
   "divr": "rr i",
   "modr": "rr i",
   "ldb": "rr i",

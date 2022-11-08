@@ -94,6 +94,8 @@ proc toInstruction*(r: RawInstruction): Instruction =
     of "rr":
       result.rd1 = args[0].uint8
       result.rs1 = args[1].uint8
+    of "":
+      discard
     else:
       raise ParseError.newException("Unknown conversion scheme: " & schemes[r.ident])
   else: # Default Scheme: rrri
