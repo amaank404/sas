@@ -6,7 +6,7 @@ description   = "SAS compiler"
 license       = "MIT"
 srcDir        = "src"
 installExt    = @["nim"]
-bin           = @["sas"]
+bin           = @["sas", "sasemu"]
 
 
 # Dependencies
