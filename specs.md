@@ -251,6 +251,24 @@ directives, the last directive will be considered.
 
 ## Examples
 
+A counter that counts from 0 to 10 without any external libraries
+```asm
+.start _main
+
+_main:
+    set t0 0         # Counter
+    set t1 10        # Maximum
+    set t2 false     # Condition
+
+1:
+    add t0 1         # Increment t0
+    eq t2 t1 t0      # If counter is at 10
+    jif t2 %2f       # Then jump forward to local label 2
+    jmp %1b          # Continue the loop
+2:
+    err              # Exit out
+```
+
 Hello World with sasi frameworks:
 
 ```asm
