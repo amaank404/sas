@@ -4,7 +4,7 @@ type
     name*: string
 
   RawData* = object
-    data*: seq[byte]
+    data*: string
 
   RawInstruction* = object
     ident*: string

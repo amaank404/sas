@@ -1,7 +1,6 @@
 import sas/toolchain/parser
 import sas/toolchain/types
 import std/strutils
-import std/streams
 import sas/toolchain/cli
 
 proc signatureRepl*(expandPseudo: bool = false) =
@@ -52,11 +51,7 @@ when isMainModule:
   elif clioptions.action == "d" or clioptions.action == "decompile":
     if clioptions.debugfile.len == 0:
       echo "Debug file required to disassemble, please provide using `--debug=FILENAME`"
-    var databytecode: seq[byte]
-    let alreadydonefp = openFileStream(clioptions.files[0], fmRead)
-    while not alreadydonefp.atEnd:
-      databytecode.add alreadydonefp.readChar().byte
-
+    var databytecode = readFile(clioptions.files[0])
     let debuginfo = readFile(clioptions.debugfile).fromTextDebugInfo
     let decompiled = decompile(databytecode, debuginfo)
     writefile(clioptions.output, decompiled)

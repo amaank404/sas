@@ -26,7 +26,7 @@ proc toregstr(i: uint8): string =
   else:
     return "zero"
 
-proc decompile*(bytecode: seq[byte], debuginfo: Table[string, seq[int]]): string =
+proc decompile*(bytecode: string, debuginfo: Table[string, seq[int]]): string =
   var 
     ins: Instruction
     i: int
@@ -49,12 +49,12 @@ proc decompile*(bytecode: seq[byte], debuginfo: Table[string, seq[int]]): string
         final.add(x & ":\n")
     if skips.hasKey(i):
       # There is a skip with some data contained
-      var skipdata = newSeqUninitialized[byte](skips[i])
+      var skipdata = newStringOfCap(skips[i])
       for x in 0..<skipdata.len:
-        skipdata[x] = bytecode[i+x]
-      if skipdata[^1] == 0:
+        skipdata.add bytecode[i+x]
+      if skipdata[^1] == '\0':
         final.add(".string \"")
-        discard skipdata.pop()
+        skipdata.removeSuffix('\0')
       else:
         final.add(".dump \"")
       # final.setLen(final.len + skipdata.len)  # Pre Allocate enough space
@@ -69,10 +69,10 @@ proc decompile*(bytecode: seq[byte], debuginfo: Table[string, seq[int]]): string
       final.add "\"\n"
       i += skips[i]
       continue
-    ins.opcode = bytecode[i]
-    ins.rd1    = bytecode[i+1]
-    ins.rs1    = bytecode[i+2]
-    ins.rs2    = bytecode[i+3]
+    ins.opcode = bytecode[i].uint8
+    ins.rd1    = bytecode[i+1].uint8
+    ins.rs1    = bytecode[i+2].uint8
+    ins.rs2    = bytecode[i+3].uint8
     ins.imm    = bytecode[i+4].uint32.shl(3) or bytecode[i+5].uint32.shl(2) or bytecode[i+6].uint32.shl(1) or bytecode[i+7].uint32
     # At this stage we have the skips and labels figured out, We also have
     # the raw instruction and we now only need to convert the raw instruction
@@ -98,6 +98,8 @@ proc decompile*(bytecode: seq[byte], debuginfo: Table[string, seq[int]]): string
       instructionstr.add ins.rd1.toregstr & ' ' & ins.rs1.toregstr
     of "rrri":
       instructionstr.add "$1 $2 $3 $4" % [ins.rd1.toregstr, ins.rs1.toregstr, ins.rs2.toregstr, $ins.imm]
+    of "":
+      discard  # No need to append any thing
     else:
       raise ParseError.newException("Error unknown instruction scheme: " & scheme)
 

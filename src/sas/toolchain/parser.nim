@@ -28,6 +28,12 @@ proc isNumeric(s: string): bool =
   var x: int
   s.parseInt(x) == s.len
 
+proc toString(d: seq[byte]): string =
+  var s = newStringOfCap(d.len)
+  for x in d:
+    s.add(cast[char](x))
+  return s
+
 proc newDirective*(dir: RegexMatch, text: string): Directive {.inline.} =
   Directive(name: dir.group("name", text)[0], args: dir.group("args", text)[0])
 
@@ -213,7 +219,7 @@ proc resolveIncludeDirectives*(code: seq[Node], libpaths: seq[string] = @[]): se
     else:
       result.add v
 
-proc compile*(code: sink seq[Node], incdebug: bool): tuple[code: seq[uint8], debuginfo: Table[string, seq[int]]] =
+proc compile*(code: sink seq[Node], incdebug: bool): tuple[code: string, debuginfo: Table[string, seq[int]]] =
   code.add Node(kind: nkLabel, labelIdent: "MEMORY_START")
   var labellocations: Table[string, seq[int]]
   var labelsetlocations: Table[string, int]
@@ -225,13 +231,16 @@ proc compile*(code: sink seq[Node], incdebug: bool): tuple[code: seq[uint8], deb
     if v.kind == nkDirective:
       case v.dirVal.name
       of "byte":
-        temp.add Node(kind: nkRawData, rawVal: RawData(data: @[cast[uint](intLiteral(v.dirVal.args.strip)).uint64.toBytesBE[0]]))
+        temp.add Node(kind: nkRawData, rawVal: RawData(data: $cast[char](cast[uint8](intLiteral(v.dirVal.args.strip)).uint64.toBytesBE[0])))
       of "half":
-        temp.add Node(kind: nkRawData, rawVal: RawData(data: @(cast[uint](intLiteral(v.dirVal.args.strip)).uint64.toBytesBE[0..1])))
+        temp.add Node(kind: nkRawData, rawVal: RawData(data: toString @(cast[uint](intLiteral(v.dirVal.args.strip)).uint64.toBytesBE[0..1])))
       of "word":
-        temp.add Node(kind: nkRawData, rawVal: RawData(data: @(cast[uint](intLiteral(v.dirVal.args.strip)).uint64.toBytesBE[0..3])))
+        temp.add Node(kind: nkRawData, rawVal: RawData(data: toString @(cast[uint](intLiteral(v.dirVal.args.strip)).uint64.toBytesBE[0..3])))
       of "zero":
-        let zeros = newSeq[uint8](intLiteral(v.dirVal.args.strip))
+        let tz = intLiteral(v.dirVal.args.strip)
+        var zeros = newStringOfCap(tz)
+        for x in 1..tz:
+          zeros.add '\x00'
         temp.add Node(kind: nkRawData, rawVal: RawData(data: zeros))
       of "nop":
         let noplen = intLiteral(v.dirVal.args.strip)
@@ -275,10 +284,8 @@ proc compile*(code: sink seq[Node], incdebug: bool): tuple[code: seq[uint8], deb
           stringdata[x - done] = esctable['\\' & string_data[x - done + 1]]
           done += 1
         
-        var rawstring = cast[seq[uint8]](stringdata)  # FIXME: Unsafe cast here
-        if v.dirVal.name == "string":
-          rawstring.add 0'u8  # Null termination of string
-        temp.add Node(kind: nkRawData, rawVal: RawData(data: rawstring))
+        stringdata.add '\0'
+        temp.add Node(kind: nkRawData, rawVal: RawData(data: stringdata))
       of "start":
         temp.add Node(kind: nkRawInstruction, rinsVal: newRawInstruction("jmp %" & v.dirVal.args.strip))
       else:
@@ -359,28 +366,26 @@ proc compile*(code: sink seq[Node], incdebug: bool): tuple[code: seq[uint8], deb
   # All the variables have now been resolved. Now we can convert all nodes
   # to there Binary Representation. Here we make an educated guess about
   # the size of output.
-  var codefinal = newSeqOfCap[uint8](ci)
+  var codefinal = newStringOfCap(ci)
 
   for x in temp2:
     case x.kind
     of nkRawInstruction:
       let r = x.rinsVal.toInstruction
-      var final: array[8, uint8]
-      final[0] = r.opcode
-      final[1] = r.rd1
-      final[2] = r.rs1
-      final[3] = r.rs2
-      final[4..7] = r.imm.toBytesBE
-      codefinal.add final
+      codefinal.add cast[char](r.opcode)
+      codefinal.add cast[char](r.rd1)
+      codefinal.add cast[char](r.rs1)
+      codefinal.add cast[char](r.rs2)
+      for x in r.imm.toBytesBE:
+        codefinal.add cast[char](x)
     of nkInstruction:
       let r = x.insVal
-      var final: array[8, uint8]
-      final[0] = r.opcode
-      final[1] = r.rd1
-      final[2] = r.rs1
-      final[3] = r.rs2
-      final[4..7] = r.imm.toBytesBE
-      codefinal.add final
+      codefinal.add cast[char](r.opcode)
+      codefinal.add cast[char](r.rd1)
+      codefinal.add cast[char](r.rs1)
+      codefinal.add cast[char](r.rs2)
+      for x in r.imm.toBytesBE:
+        codefinal.add cast[char](x)
     of nkRawData:
       codefinal.add x.rawVal.data
     of nkLabel:
@@ -391,8 +396,8 @@ proc compile*(code: sink seq[Node], incdebug: bool): tuple[code: seq[uint8], deb
 
     result.code = codefinal
 
-proc compile*(code: string): seq[uint8] =
+proc compile*(code: string): string =
   compile(parseAsm(code), false).code
 
-proc compile*(code: sink seq[Node]): seq[uint8] =
+proc compile*(code: sink seq[Node]): string =
   compile(code, false).code
