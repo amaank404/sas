@@ -81,8 +81,8 @@ var pseudoins*: Table[string, string] = static:
   # Complex Pseudo Instructions
     push r        = sub sp 4|stw sp $0
     pop r         = ldw $0 sp|add sp 4
-    call i        = add t0 ip 32|sub sp 4|stw sp t0|add ip $0
-    call r        = add t0 ip 32|sub sp 4|stw sp t0|add ip $0
+    call i        = add t0 ip 32|sub sp 4|stw sp t0|set ip $0
+    call r        = add t0 ip 32|sub sp 4|stw sp t0|set ip $0
     ret           = ldw t0 sp|add sp 4|mov ip t0
     ecall         = add t0 ip 32|sub sp 4|stw sp t0|mov ip ct
   

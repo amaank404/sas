@@ -275,17 +275,21 @@ proc compile*(code: sink seq[Node], incdebug: bool): tuple[code: string, debugin
         if not v.dirVal.args.strip.match(stringliteral, matches):
           raise ParseError.newException("Unable to parse string argument for string/dump directive: " & v.dirVal.args.strip)
         var stringdata = matches.group("data", v.dirVal.args.strip).join()
-        var replacement_tasks: seq[int]
-        for i, v in stringdata:
-          if v == '\\':
-            replacement_tasks.add i
-        var done: int
-        for x in replacement_tasks:
-          stringdata[x - done] = esctable['\\' & string_data[x - done + 1]]
-          done += 1
+        var finalstringdata: string = newStringOfCap(stringdata.len)
+
+        var i = 0
+        while i < stringdata.len:
+          if stringdata[i] == '\\':
+            finalstringdata.add esctable['\\' & stringdata[i+1]]
+            inc i
+          else:
+            finalstringdata.add stringdata[i]
+          inc i
+
+        if v.dirVal.name == "string":
+          finalstringdata.add '\0'
         
-        stringdata.add '\0'
-        temp.add Node(kind: nkRawData, rawVal: RawData(data: stringdata))
+        temp.add Node(kind: nkRawData, rawVal: RawData(data: finalstringdata))
       of "start":
         temp.add Node(kind: nkRawInstruction, rinsVal: newRawInstruction("jmp %" & v.dirVal.args.strip))
       else:

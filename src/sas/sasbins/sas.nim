@@ -1,7 +1,7 @@
-import sas/toolchain/parser
-import sas/toolchain/types
+import ../toolchain/parser
+import ../toolchain/types
 import std/strutils
-import sas/toolchain/cli
+import ../toolchain/cli
 
 proc signatureRepl*(expandPseudo: bool = false) =
   ## An interactive repl that is used for development

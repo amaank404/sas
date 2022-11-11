@@ -78,3 +78,9 @@ macro genRegConsts(): untyped =
   result.add t
 
 var registers*: Table[string, int] = genRegConsts()
+var registersOpposite*: Table[int, seq[string]]
+
+for k, v in registers.pairs:
+  if not registersOpposite.hasKey(v):
+    registersOpposite[v] = @[]
+  registersOpposite[v].add k

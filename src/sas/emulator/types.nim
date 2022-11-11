@@ -1,13 +1,11 @@
 type
-  PlugFunction* = proc(bufferptr: cint, size: cint) {.stdcall.}
+  PlugFunction* = proc(iob: var array[256, uint8])
   Cpu* = object
     registers*: array[30, uint32]
     iobus*: array[256, byte]
     plugins*: seq[Plugin]
-    memory*: seq[byte]
+    memory*: string
   Plugin* = object
-    location*: int
-    size*: int
     onclock*: PlugFunction
   Instruction32* = object
     opcode*: int

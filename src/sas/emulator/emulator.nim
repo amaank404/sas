@@ -1,6 +1,20 @@
 import types
 import ../toolchain/types as toolchainTypes
 
+when defined(sastracer):
+  import ../toolchain/instructions
+  import ../toolchain/registerconsts
+  import std/tables
+  import std/strutils
+
+  proc toinsrepr(r: uint8): string =
+    let names = registersOpposite[r.int]
+    result.add $r
+    result.add ", "
+    result.add names.join(", ")
+
+  let registersToWatch = @["t0", "t1", "t2", "t3", "sp"]
+
 proc toIns32(i: Instruction, cpu: Cpu): Instruction32 =
   result.opcode = i.opcode.int
   result.rd1 = i.rd1.int
@@ -11,12 +25,29 @@ proc toIns32(i: Instruction, cpu: Cpu): Instruction32 =
 proc tick*(cpu: var Cpu): bool =
   let ip = cpu.getReg(3)
   var rawins: Instruction
-  rawins.opcode = cpu.memory[ip]
-  rawins.rd1    = cpu.memory[ip+1]
-  rawins.rs1    = cpu.memory[ip+2]
-  rawins.rs2    = cpu.memory[ip+3]
-  rawins.imm    = cpu.memory[ip+4].uint32.shl(3) or cpu.memory[ip+5].uint32.shl(2) or cpu.memory[ip+6].uint32.shl(1) or cpu.memory[ip+7].uint32
+  rawins.opcode = cpu.memory[ip].uint8
+  rawins.rd1    = cpu.memory[ip+1].uint8
+  rawins.rs1    = cpu.memory[ip+2].uint8
+  rawins.rs2    = cpu.memory[ip+3].uint8
+  rawins.imm    = cpu.memory[ip+4].uint32.shl(24) or cpu.memory[ip+5].uint32.shl(16) or cpu.memory[ip+6].uint32.shl(8) or cpu.memory[ip+7].uint32
   let ins = rawins.toIns32(cpu)
+
+  when defined(sastracer):
+    let signature = realinsOpposite[rawins.opcode.int]
+    let name = signature.split(' ', 1)[0]
+    var res = """Memory IP: $1
+OPCODE: $2, $3
+RD1   : $4
+RS1   : $5
+RS2   : $6
+IMM   : $7
+""" % [$ip,$rawins.opcode,name,toinsrepr(rawins.rd1), toinsrepr(rawins.rs1), toinsrepr(rawins.rs2), $rawins.imm]
+    for x in registersToWatch:
+      res.add x.toUpperAscii
+      res.add "    : "
+      res.add $cpu.getReg(registers[x])
+      res.add "\n"
+    echo res
 
   case ins.opcode
   of 0x00:
@@ -40,19 +71,19 @@ proc tick*(cpu: var Cpu): bool =
   of 0x08:  # LDB
     cpu.setReg(ins.rd1, cpu.memory[ins.rs1 + ins.imm].uint32)
   of 0x09:  # LDH
-    cpu.setReg(ins.rd1, cpu.memory[ins.rs1 + ins.imm].uint32.shl(1) or cpu.memory[ins.rs1 + ins.imm + 1].uint32)
+    cpu.setReg(ins.rd1, cpu.memory[ins.rs1 + ins.imm].uint32.shl(8) or cpu.memory[ins.rs1 + ins.imm + 1].uint32)
   of 0x0a:  # LDW
-    cpu.setReg(ins.rd1, cpu.memory[ins.rs1 + ins.imm].uint32.shl(3) or cpu.memory[ins.rs1 + ins.imm + 1].uint32.shl(2) or cpu.memory[ins.rs1 + ins.imm + 2].uint32.shl(1) or cpu.memory[ins.rs1 + ins.imm + 3].uint32)
+    cpu.setReg(ins.rd1, cpu.memory[ins.rs1 + ins.imm].uint32.shl(32) or cpu.memory[ins.rs1 + ins.imm + 1].uint32.shl(16) or cpu.memory[ins.rs1 + ins.imm + 2].uint32.shl(8) or cpu.memory[ins.rs1 + ins.imm + 3].uint32)
   of 0x0b:  # STB
-    cpu.memory[ins.rs1 + ins.imm] = (ins.rs2 or byte.high).byte
+    cpu.memory[ins.rs1 + ins.imm] = (ins.rs2 and byte.high).char
   of 0x0c:  # STH
-    cpu.memory[ins.rs1 + ins.imm] = (ins.rs2 or byte.high.uint32.shl(1)).byte
-    cpu.memory[ins.rs1 + ins.imm + 1] = (ins.rs2 or byte.high).byte
+    cpu.memory[ins.rs1 + ins.imm] = (ins.rs2 and byte.high.uint32.shl(8)).shr(8).char
+    cpu.memory[ins.rs1 + ins.imm + 1] = (ins.rs2 and byte.high).char
   of 0x0d:  # STW
-    cpu.memory[ins.rs1 + ins.imm] = (ins.rs2 or byte.high.uint32.shl(3)).byte
-    cpu.memory[ins.rs1 + ins.imm + 1] = (ins.rs2 or byte.high.uint32.shl(2)).byte
-    cpu.memory[ins.rs1 + ins.imm + 2] = (ins.rs2 or byte.high.uint32.shl(1)).byte
-    cpu.memory[ins.rs1 + ins.imm + 3] = (ins.rs2 or byte.high).byte
+    cpu.memory[ins.rs1 + ins.imm] = (ins.rs2 and byte.high.uint32.shl(32)).shr(32).char
+    cpu.memory[ins.rs1 + ins.imm + 1] = (ins.rs2 and byte.high.uint32.shl(16)).shr(16).char
+    cpu.memory[ins.rs1 + ins.imm + 2] = (ins.rs2 and byte.high.uint32.shl(8)).shr(8).char
+    cpu.memory[ins.rs1 + ins.imm + 3] = (ins.rs2 and byte.high).char
   of 0x0e:  # GT
     cpu.setReg(ins.rd1, (ins.rs1 > ins.rs2).byte)
   of 0x0f:  # EQ
@@ -73,7 +104,7 @@ proc tick*(cpu: var Cpu): bool =
   of 0x16:  # SHR
     cpu.setReg(ins.rd1, ins.rs1.shr(ins.rs2))
   of 0x18:  # IOW
-    cpu.iobus[ins.rs1 + ins.imm] = (ins.rs2 or byte.high).byte
+    cpu.iobus[ins.rs1 + ins.imm] = ins.rs2.byte
   of 0x19:  # IOR
     cpu.setReg(ins.rd1, cpu.iobus[ins.rs1 + ins.imm])
   else:
@@ -84,8 +115,7 @@ proc tick*(cpu: var Cpu): bool =
     cpu.setReg(3, cpu.getReg(3) + 8)
   
   for x in cpu.plugins:
-    let d = cpu.iobus[x.location .. x.location+x.size]
-    x.onclock(cast[cint](unsafeAddr d), x.size.cint)
+    x.onclock(cpu.iobus)
 
   return true
 
@@ -101,10 +131,10 @@ proc createCpu*(memsize: int, plugins: seq[Plugin] = @[]): Cpu =
   result.registers[1] = 1
   for x in plugins:
     result.plugins.add x
-  var mem = newSeq[byte](memsize)
+  var mem = newStringOfCap(memsize)
   result.memory = mem
 
-proc createCpu*(mem: var seq[byte], plugins: seq[Plugin] = @[]): Cpu =
+proc createCpu*(mem: var string, plugins: seq[Plugin] = @[]): Cpu =
   result.registers[0] = 0
   result.registers[1] = 1
   for x in plugins:
