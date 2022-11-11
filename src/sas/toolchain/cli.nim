@@ -1,88 +1,54 @@
-import std/parseopt
-import std/os
+import argparse
 import version
 
-var helpstring = """
-SAS, Simple and Small architecture assembler. This assembler provides you
-with a compiler, decompiler, parser and repl for converting to and from
-binary instructions.
+type 
+  CliOptions* = object
+    action*: string
+    output*: string
+    check*: bool
+    debugfile*: string
+    files*: seq[string]
+    includes*: seq[string]
+  ShowVersionInfo = object of CatchableError
 
-Usage:
-  sas (c | compile) [-ocdi] [--] <filename>...
-  sas (d | decompile) [-d] [--] <binaryfile>
+var probj* = newParser:
+  help("A compiler for sas cpu architecture")
+  command "version":
+    help("Show version information")
+  command "compile":
+    help("Compile the given files to a binary")
+    option("-o", "--output", help="The file to write the binary to.", default=some("out.bin"))
+    flag("-c", "--check", help="Do not save the output, only compile")
+    option("-d", "--debug", help="The location to save the debug file, if not provided, no debug file will be generated.", default=some(""))
+    option("-i", "--include", help="Include paths to search include files.", multiple=true)
+    arg("files", help="The files to compile", nargs = -1)
+  command "decompile":
+    help("Decompiles a given binary to a single source file")
+    option("-o", "--output", help="The file to write the decompiled sources to, Note: When decompiling, the original file structure is not preserved", some("out.s"))
+    arg("file", help="The binary file to decompile", nargs = -1)
 
-Options:
-  -h --help             Show this help message.
-  -v --version          Show version information.
-  -o FILE --out=FILE    When compiling, this is the file that shall store
-                        the binary output.
-                        When decompiling, this is the file that shall contain
-                        the decompiled source code.
-
-
-Compiler Options:
-  -c --check            Do not save the output, instead just see if it compiles.
-
-  -d DBGFILE --debug=DBGFIle
-                        The location to save the debuging output if the program
-                        needs to be debuged or disassembled later.
-                        If decompiling, the location of the debug file.
-  -i PATH --include PATH    Specify an include path that shall be added in the library path.
-
-Decompiler Options:
-  Note The decompiler when used upon a binary will only generate
-        a huge source file with no distinctions of original files it
-        was compiled from.
-"""
-
-var p = initOptParser(commandLineParams(),
-  shortNoVal = {'c'},
-  longNoVal = @["check"]
-)
-
-type CliOptions* = object
-  action*: string
-  output*: string
-  check*: bool
-  debugfile*: string
-  files*: seq[string]
-  includes*: seq[string]
-
-var clioptions*: CliOptions
-# Setting the defaults
-clioptions.output = "sasoutput"
-
-while true:
-  p.next()
-  case p.kind
-  of cmdEnd:
-    break
-  of cmdShortOption, cmdLongOption:
-    case p.key
-    of "o", "out":
-      clioptions.output = p.val
-    of "d", "debug":
-      clioptions.debugfile = p.val
-    of "c", "check":
-      clioptions.check = true
-    of "i", "include":
-      clioptions.includes.add p.val
-    of "h", "help":
-      echo helpstring
-      quit(0)
-    of "v", "version":
-      echo "SAS v", SASVERSION, " supports minimum v", MINSASVERSION
-  of cmdArgument:
-    if clioptions.action.len == 0:
-      clioptions.action = p.key
-    else:
-      case clioptions.action
-      of "compile", "c":
-        clioptions.files.add p.key
-      of "decompile", "d":
-        if clioptions.files.len != 0:
-          echo "decompilation expects only one positional argument. Multiple provided"
-          quit(1)
-        clioptions.files.add p.key
-      else:
-        echo "No positional arguments were expected for `" & clioptions.action & '`'
+proc getcliopts*(): CliOptions=
+  try:
+    let opts = cli.probj.parse()
+    if opts.command == "version":
+      raise ShowVersionInfo.newException("")
+    result.action = opts.command
+    if opts.command == "compile":
+      result.output = opts.compile.get.output
+      result.files = opts.compile.get.files
+      result.check = opts.compile.get.check
+      result.debugfile = opts.compile.get.debug
+      if result.files.len == 0:
+        raise UsageError.newException("At least one file is required for compilation")
+    elif opts.command == "decompile":
+      result.output = opts.decompile.get.output
+      result.files = opts.decompile.get.file
+  except ShortCircuit as e:
+    if e.flag == "argparse_help":
+      echo e.help
+      quit(1)
+  except ShowVersionInfo:
+    echo "Sas Compiler v", $SASVERSION
+  except UsageError:
+    stderr.writeLine getCurrentExceptionMsg()
+    quit(1)

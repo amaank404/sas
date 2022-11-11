@@ -1,19 +1,15 @@
 import types
 import ../toolchain/types as toolchainTypes
+import ../toolchain/instructions
+import ../toolchain/registerconsts
+import std/tables
+import std/strutils
 
-when defined(sastracer):
-  import ../toolchain/instructions
-  import ../toolchain/registerconsts
-  import std/tables
-  import std/strutils
-
-  proc toinsrepr(r: uint8): string =
-    let names = registersOpposite[r.int]
-    result.add $r
-    result.add ", "
-    result.add names.join(", ")
-
-  let registersToWatch = @["t0", "t1", "t2", "t3", "sp"]
+proc toinsrepr(r: uint8): string =
+  let names = registersOpposite[r.int]
+  result.add $r
+  result.add ", "
+  result.add names.join(", ")
 
 proc toIns32(i: Instruction, cpu: Cpu): Instruction32 =
   result.opcode = i.opcode.int
@@ -22,7 +18,7 @@ proc toIns32(i: Instruction, cpu: Cpu): Instruction32 =
   result.rs2 = cpu.getReg(i.rs2.int)
   result.imm = i.imm
 
-proc tick*(cpu: var Cpu): bool =
+proc tick*(cpu: var Cpu, tracer: bool = false, tracevars: seq[string] = @[]): bool =
   let ip = cpu.getReg(3)
   var rawins: Instruction
   rawins.opcode = cpu.memory[ip].uint8
@@ -32,7 +28,7 @@ proc tick*(cpu: var Cpu): bool =
   rawins.imm    = cpu.memory[ip+4].uint32.shl(24) or cpu.memory[ip+5].uint32.shl(16) or cpu.memory[ip+6].uint32.shl(8) or cpu.memory[ip+7].uint32
   let ins = rawins.toIns32(cpu)
 
-  when defined(sastracer):
+  if tracer:
     let signature = realinsOpposite[rawins.opcode.int]
     let name = signature.split(' ', 1)[0]
     var res = """Memory IP: $1
@@ -42,10 +38,10 @@ RS1   : $5
 RS2   : $6
 IMM   : $7
 """ % [$ip,$rawins.opcode,name,toinsrepr(rawins.rd1), toinsrepr(rawins.rs1), toinsrepr(rawins.rs2), $rawins.imm]
-    for x in registersToWatch:
+    for x in tracevars:
       res.add x.toUpperAscii
       res.add "    : "
-      res.add $cpu.getReg(registers[x])
+      res.add $cpu.getReg(registers[x.toLowerAscii])
       res.add "\n"
     echo res
 
@@ -119,10 +115,10 @@ IMM   : $7
 
   return true
 
-proc run*(cpu: var Cpu) =
+proc run*(cpu: var Cpu, tracer: bool = false, tracevars: seq[string] = @[]) =
   var continueing: bool = true;
   while true:
-    continueing = cpu.tick();
+    continueing = cpu.tick(tracer, tracevars);
     if not continueing:
       break
 

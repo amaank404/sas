@@ -1,35 +1,10 @@
 import ../toolchain/parser
-import ../toolchain/types
-import std/strutils
 import ../toolchain/cli
 
-proc signatureRepl*(expandPseudo: bool = false) =
-  ## An interactive repl that is used for development
-  ## run it to parse instruction signatures.
-  while true:
-    stdout.write(">")
-    stdout.flushFile()
-    var inp: string
-    if not stdin.readLine(inp):
-      echo "Quitting"
-      break
-    inp = inp.strip()
-    try:
-      var ins = newRawInstruction(inp)
-      if expandPseudo:
-        echo "Original:"
-        echo "  ", ins
-        echo "Expanded:"
-        for x in ins.abs:
-          echo "  ", x
-      else:
-        echo ins
-    except Exception:
-      echo "Error Encountered: ", getCurrentExceptionMsg()
-
 when isMainModule:
-  # signatureRepl(true)
-  if clioptions.action == "c" or clioptions.action == "compile":
+  var clioptions: CliOptions = cli.getcliopts()
+
+  if clioptions.action == "compile":
     var srccode: string
     for x in clioptions.files:
       srccode.add '\n'
@@ -48,12 +23,10 @@ when isMainModule:
       except:
         echo "Does not compile"
         echo getCurrentExceptionMsg()
-  elif clioptions.action == "d" or clioptions.action == "decompile":
+  elif clioptions.action == "decompile":
     if clioptions.debugfile.len == 0:
       echo "Debug file required to disassemble, please provide using `--debug=FILENAME`"
     var databytecode = readFile(clioptions.files[0])
     let debuginfo = readFile(clioptions.debugfile).fromTextDebugInfo
     let decompiled = decompile(databytecode, debuginfo)
     writefile(clioptions.output, decompiled)
-  else:
-    echo "Unrecognized action: `$1`" % [clioptions.action]

@@ -1,9 +1,12 @@
 import ../emulator/emulator
-import ../emulator/plugins/stdout
+import ../emulator/cli
 
-var databytecode = readFile("out.bin")
-databytecode.setLen(databytecode.len + 1024)
+when isMainModule:
+  var clioptions: CliOptions = cli.getcliopts()
 
-var cpu = createCpu(databytecode)
-cpu.plugins.add(stdoutPlugin)
-cpu.run()
+  if clioptions.action == "emulate":
+    var databytecode = readFile(clioptions.file)
+    databytecode.setLen(clioptions.memory)
+    
+    var cpu = createCpu(databytecode, clioptions.plugins)
+    cpu.run(clioptions.tracer, clioptions.tracereg)
