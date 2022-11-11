@@ -1,9 +1,17 @@
 ![LOGO Image](images/saslogohdpi.png)
 
-# SAS (Small and Simple)
+# SAS (Small and Simple) :smile:
 Sas is a cpu architecture that was just created for emulators and other such
 stuff. It is for fun and for learning basic assembly language. You can
 look at [specs](specs.md) for more information.
+
+## Features :star2:
+
+* 32-bit architecture :pager:
+* Easy to use :tada:
+* Less than 25 instructions to grasp :page_with_curl:
+* Easy to debug :bug:
+* Fast and extensible emulator :zap:
 
 ## Compiler/Decompiler
 The compiler is itself written in nim and the code is organized using modules.
@@ -25,23 +33,23 @@ are originally located in [sas/toolchain/debuginfo](src/sas/toolchain/debuginfo.
 * `fromTextDebugInfo`
 * `toTextDebugInfo`
 
-## CLI
+## CLI :computer:
 This compiler also provides a commandline interface. First, build the main
 binary by using `nimble -d:release build`. This should build the sas binary
 which you can invoke by `./sas --help`. The CLI interface is full featured.
 
-## Compiler Compilation Flags
+## Compiler Compilation Flags :crossed_flags:
 The compiler has some flags that alter the output binary.
 
 | Flag | Effect |
 | ---- | ------ |
-| `-d:release` | Makes the compiler very fast |
-| `--mm:orc --deepcopy:on` | Makes the compiler even faster |
-| `-d:hideWarnings` | Resulting compiler will never have any warnings enabled |
+| `-d:release` | Makes the compiler very fast :zap: |
+| `--mm:orc --deepcopy:on` | Makes the compiler even faster :zap::zap: |
+| `-d:hideWarnings` | Resulting compiler will never have any warnings enabled :warning: |
 
-## Specs
+## Specs :ledger:
 To basically learn about SAS, please look into [specs](specs.md). They contain
 every detail. Even a reference 
 
-# Licensing
+# Licensing :page_facing_up:
 LICENSED UNDER MIT LICENSE. LOOK AT [LICENSE](LICENSE) FILE FOR MORE DETAILS
