@@ -1,3 +1,5 @@
+![LOGO Image](images/saslogohdpi.png)
+
 # SAS (Small and Simple)
 Sas is a cpu architecture that was just created for emulators and other such
 stuff. It is for fun and for learning basic assembly language. You can
