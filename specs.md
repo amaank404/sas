@@ -162,6 +162,8 @@ to be called "compilant with sas specs".
 | pseudo | shr | rd1 | - | - | imm | rd1 \>\>= imm | shr dest literal |
 | 0x18 | iow | - | rs1 | rs2 | imm | iobus[rs1+imm] = rs2 | iow source1 literal source2 |
 | 0x19 | ior | rd1 | rs1 | - | imm | rd1 = iobus[rs1+imm] | ior dest source literal |
+| pseudo | inc | rd1 | - | - | - | rd1 += 1 | inc dest |
+| pseudo | dec | rd1 | - | - | - | rd1 -= 1 | dec dest |
 
 ## Instruction Format
 Instructions are fixed length and size is 8 bytes. There format
