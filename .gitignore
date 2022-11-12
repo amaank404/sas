@@ -3,3 +3,6 @@
 *.dbg
 *.exe
 sasoutput
+nimcache
+testresults
+outputGotten.txt
