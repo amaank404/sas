@@ -50,7 +50,7 @@ proc decompile*(bytecode: string, debuginfo: Table[string, seq[int]]): string =
     if skips.hasKey(i):
       # There is a skip with some data contained
       var skipdata = newStringOfCap(skips[i])
-      for x in 0..<skipdata.len:
+      for x in 0..<skips[i]:
         skipdata.add bytecode[i+x]
       if skipdata[^1] == '\0':
         final.add(".string \"")

@@ -24,6 +24,7 @@ var probj* = newParser:
     arg("files", help="The files to compile", nargs = -1)
   command "decompile":
     help("Decompiles a given binary to a single source file")
+    option("-d", "--debug", help="The location to read the debug file from", required=true)
     option("-o", "--output", help="The file to write the decompiled sources to, Note: When decompiling, the original file structure is not preserved", some("out.s"))
     arg("file", help="The binary file to decompile", nargs = -1)
 
@@ -38,10 +39,12 @@ proc getcliopts*(): CliOptions=
       result.files = opts.compile.get.files
       result.check = opts.compile.get.check
       result.debugfile = opts.compile.get.debug
+      result.includes = opts.compile.get.include
       if result.files.len == 0:
         raise UsageError.newException("At least one file is required for compilation")
     elif opts.command == "decompile":
       result.output = opts.decompile.get.output
+      result.debugfile = opts.decompile.get.debug
       result.files = opts.decompile.get.file
   except ShortCircuit as e:
     if e.flag == "argparse_help":
