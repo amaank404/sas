@@ -20,7 +20,7 @@ mul a0 a1
 mul a0 0b11111111
 
 div a0 10
-divr r12 10 r13
+divr r12 r13 10
 mod a0 a1 r1 12
 """
 
