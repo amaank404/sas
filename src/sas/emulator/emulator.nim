@@ -85,7 +85,7 @@ IMM   : $7
   of 0x0f:  # EQ
     cpu.setReg(ins.rd1, (ins.rs1 == ins.rs2).byte)
   of 0x10:  # NOT
-    cpu.setReg(ins.rd1, (not ins.rs1.bool).byte)
+    cpu.setReg(ins.rd1, not ins.rs1)
   of 0x11:  # OR
     cpu.setReg(ins.rd1, ins.rs1 or ins.rs2 or ins.imm)
   of 0x12:  # AND

@@ -120,9 +120,15 @@ var pseudoins*: Table[string, string] = static:
   # IoBus
     iow r i r     = iow $0 $2 $1
 
-  # Custom Undocumented Instructions
+  # Increment / Decrement instructions
     inc r         = add $0 $0 zero 1
     dec r         = sub $0 $0 zero 1
+
+  # Logical Pseudo Instructions
+    lnot r        = eq $0 $0 zero
+    lnot r r      = eq $0 $1 zero
+    lnm r         = and $0 1
+    lnm r r       = and $0 $1 1
   """
   t
 

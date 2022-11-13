@@ -133,8 +133,8 @@ to be called "compilant with sas specs".
 | pseudo | lt | rd1 | rs1 | - | - | rd1 = rd1 < rs2 | lt dest source |
 | 0x0f | eq | rd1 | rs1 | rs2 | - | rd1 = rs1 == rs2 | eq dest source1 source2 |
 | pseudo | eq | rd1 | rs1 | - | - | rd1 = rd1 == rs1 | eq dest source |
-| 0x10 | not | rd1 | rs1 | - | - | rd1 = !rs1 | not dest source |
-| pseudo | not | rd1 | - | - | - | rd1 = !rd1 | not dest |
+| 0x10 | not | rd1 | rs1 | - | - | rd1 = !rs1 (bitflip) | not dest source |
+| pseudo | not | rd1 | - | - | - | rd1 = !rd1 (bitflip)| not dest |
 | pseudo | neq | rd1 | rs1 | rs2 | - | eq {rd1} {rs1} {rs2} <br/> not {rd1} | neq dest source1 source2 |
 | pseudo | neq | rd1 | rs1 | - | - | eq {rd1} {rd1} {rs1} <br/> not {rd1} | neq dest source |
 | 0x11 | or | rd1 | rs1 | rs2 | imm | rd1 = rs1 \| rs2 \| imm | or dest source1 source2 literal |
@@ -164,6 +164,10 @@ to be called "compilant with sas specs".
 | 0x19 | ior | rd1 | rs1 | - | imm | rd1 = iobus[rs1+imm] | ior dest source literal |
 | pseudo | inc | rd1 | - | - | - | rd1 += 1 | inc dest |
 | pseudo | dec | rd1 | - | - | - | rd1 -= 1 | dec dest |
+| pseudo | lnot | rd1 | - | - | - | rd1 = !rd1 (logical) | lnot dest |
+| pseudo | lnot | rd1 | rs1 | - | - | rd1 = !rs1 (logical) | lnot dest source1 |
+| pseudo | lnm | rd1 | - | - | - | rd1 = rd1 & 1 | lnm dest |
+| pseudo | lnm | rd1 | rs1 | - | - | rd1 = rs1 & 1 | lnm dest source1 | 
 
 ## Instruction Format
 Instructions are fixed length and size is 8 bytes. There format
