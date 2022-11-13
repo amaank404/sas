@@ -93,13 +93,13 @@ to be called "compilant with sas specs".
 | pseudo | div | rd1 | rs1 | - | - | rd1 /= rs1 | div dest source |
 | pseudo | div | rd1 | - | - | imm | rd1 /= imm | div dest literal |
 | pseudo | div | rd1 | rs1 | - | imm | rd1 = rs1/imm | div dest source literal |
-| 0x05 | divr | rd1 | rs1 | - | imm | rd1 = imm/rs1 | divr dest literal source |
+| 0x05 | divr | rd1 | rs1 | - | imm | rd1 = imm/rs1 | divr dest source literal  |
 | 0x06 | mod | rd1 | rs1 | rs2 | imm | rs1 = rs1%(rs2+imm) | mod dest source1 source2 literal |
 | pseudo | mod | rd1 | rs1 | rs2 | - | rd1 = rs1%rs2 | mod dest source1 source2 |
 | pseudo | mod | rd1 | rs1 | - | - | rd1 %= rs1 | mod dest source |
 | pseudo | mod | rd1 | - | - | imm | rd1 %= imm | mod dest literal |
 | pseudo | mod | rd1 | rs1 | - | imm | rd1 = rs1%imm | mod dest source literal |
-| 0x07 | modr | rd1 | rs1 | - | imm | rd1 = imm%rs1 | modr dest literal source |
+| 0x07 | modr | rd1 | rs1 | - | imm | rd1 = imm%rs1 | modr dest source literal |
 | 0x08 | ldb | rd1 | rs1 | - | imm | rd1 = mem\[rs1+imm\](1byte) | ldb dest source literal |
 | pseudo | ldb | rd1 | rs1 | - | - | rd1 = mem\[rs1\](1byte) | ldb dest source |
 | pseudo | ldb | rd1 | - | - | imm | rd1 = mem\[imm\](1byte) | ldb dest literal |
@@ -112,15 +112,15 @@ to be called "compilant with sas specs".
 | pseudo | jmp | - | rs1 | - | imm | ip = rs1 + imm | jmp source literal |
 | pseudo | jmp | - | rs1 | - | - | ip = rs1 | jmp source |
 | pseudo | jmp | - | - | - | imm | ip = imm | jmp literal |
-| 0x0b | stb | - | rs1 | rs2 | imm | mem\[rs1+imm\](1byte) = rs2 | stb dest source literal_offset |
+| 0x0b | stb | - | rs1 | rs2 | imm | mem\[rs1+imm\](1byte) = rs2 | stb dest source literal |
 | pseudo | stb | - | rs1 | rs2 | - | mem\[rs1\](1byte) = rs2 | stb dest source |
-| pseudo | stb | - | - | rs2 | imm | mem\[imm\](1byte) = rs2 | stb literal source |
-| 0x0c | sth | - | rs1 | rs2 | imm | mem\[rs1+imm\](2byte) = rs2 | sth dest source literal_offset |
+| pseudo | stb | - | - | rs2 | imm | mem\[imm\](1byte) = rs2 | stb source literal |
+| 0x0c | sth | - | rs1 | rs2 | imm | mem\[rs1+imm\](2byte) = rs2 | sth dest source literal |
 | pseudo | sth | - | rs1 | rs2 | - | mem\[rs1\](2byte) = rs2 | sth dest source |
-| pseudo | sth | - | - | rs2 | imm | mem\[imm\](2byte) = rs2 | sth literal source |
-| 0x0d | stw | - | rs1 | rs2 | imm | mem\[rs1+imm\](4byte) = rs2 | stw dest source literal_offset |
+| pseudo | sth | - | - | rs2 | imm | mem\[imm\](2byte) = rs2 | sth source literal |
+| 0x0d | stw | - | rs1 | rs2 | imm | mem\[rs1+imm\](4byte) = rs2 | stw dest source literal |
 | pseudo | stw | - | rs1 | rs2 | - | mem\[rs1\](4byte) = rs2 | stw dest source |
-| pseudo | stw | - | - | rs2 | imm | mem\[imm\](4byte) = rs2 | stw literal source |
+| pseudo | stw | - | - | rs2 | imm | mem\[imm\](4byte) = rs2 | stw source literal |
 | pseudo | push | - | rs1 | - | - | sub sp 4 <br/> stw sp {rs1} | push source |
 | pseudo | pop | rd1 | - | - | - | ldw {rd1} sp <br/> add sp 4 | pop dest |
 | pseudo | call | - | - | - | imm | add t0 ip zero 32 <br/> push t0 <br/> set ip {imm} | call literal |
@@ -160,7 +160,7 @@ to be called "compilant with sas specs".
 | pseudo | shr | rd1 | rs1 | rs2 | - | rd1 = rs1 \>\> rs2 | shr dest source1 source2 |
 | pseudo | shr | rd1 | rs1 | - | - | rd1 \>\>= rs1 | shr dest source |
 | pseudo | shr | rd1 | - | - | imm | rd1 \>\>= imm | shr dest literal |
-| 0x18 | iow | - | rs1 | rs2 | imm | iobus[rs1+imm] = rs2 | iow source1 literal source2 |
+| 0x18 | iow | - | rs1 | rs2 | imm | iobus[rs1+imm] = rs2 | iow source1 source2 literal |
 | 0x19 | ior | rd1 | rs1 | - | imm | rd1 = iobus[rs1+imm] | ior dest source literal |
 | pseudo | inc | rd1 | - | - | - | rd1 += 1 | inc dest |
 | pseudo | dec | rd1 | - | - | - | rd1 -= 1 | dec dest |
