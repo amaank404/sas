@@ -47,6 +47,15 @@ The compiler has some flags that alter the output binary.
 | `--mm:orc --deepcopy:on` | Makes the compiler even faster :zap::zap: |
 | `-d:hideWarnings` | Resulting compiler will never have any warnings enabled :warning: |
 
+## Running the tests
+This project comes with a test suite, any contributions made require a test to be
+written, as of now these work by using the tool `testament`. To run these tests
+you can run the following command:
+
+```
+testament cat .
+```
+
 ## Specs :ledger:
 To basically learn about SAS, please look into [specs](specs.md). They contain
 every detail. Even a reference 

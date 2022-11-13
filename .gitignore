@@ -4,5 +4,5 @@
 *.exe
 sasoutput
 nimcache
-testresults
+testresults*
 outputGotten.txt
