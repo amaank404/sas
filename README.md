@@ -1,3 +1,7 @@
+# Abandoned!
+This project has been abandoned, you are free to use the specs as you wish :P but the compiler and emulator
+are not guarenteed to work.
+
 ![LOGO Image](images/saslogohdpi.png)
 
 # SAS (Small and Simple) :smile:
